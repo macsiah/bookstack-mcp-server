@@ -2,6 +2,8 @@ import { AxiosError } from 'axios';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { Logger } from './logger';
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 /**
  * Error handler for BookStack MCP Server
  */
@@ -83,13 +85,15 @@ export class ErrorHandler {
       );
     }
 
-    // Handle generic errors
+    // Handle generic errors.
+    // Stack traces are only included in development — in production they leak
+    // internal file paths and implementation details to the MCP client.
     const mcpError = new McpError(
       ErrorCode.InternalError,
       error.message || 'An unexpected error occurred',
-      { 
+      {
         type: 'internal_error',
-        stack: error.stack,
+        ...(isDevelopment && { stack: error.stack }),
       }
     );
 
@@ -103,7 +107,18 @@ export class ErrorHandler {
   }
 
   /**
-   * Map HTTP status codes to MCP error codes
+   * Map HTTP status codes to MCP error codes.
+   *
+   * MCP's ErrorCode vocabulary is limited, so we map as semantically close as
+   * possible and rely on the error message + data.type for finer distinction:
+   *   400 / 422 → InvalidParams   (caller sent bad data)
+   *   401       → InvalidRequest  (unauthenticated — no valid token)
+   *   403       → InvalidRequest  (authenticated but not permitted)
+   *   404       → InvalidRequest  (resource doesn't exist)
+   *   429 / 5xx → InternalError   (server-side or rate-limit problem)
+   *
+   * Callers that need to tell 401 from 403 from 404 apart should inspect
+   * error.data.type ('authentication_error', 'permission_error', 'not_found_error').
    */
   private mapToMCPErrorCode(status?: number): ErrorCode {
     switch (status) {
@@ -111,13 +126,10 @@ export class ErrorHandler {
       case 422:
         return ErrorCode.InvalidParams;
       case 401:
-        return ErrorCode.InvalidRequest;
       case 403:
-        return ErrorCode.InvalidRequest;
       case 404:
         return ErrorCode.InvalidRequest;
       case 429:
-        return ErrorCode.InternalError;
       case 500:
       case 502:
       case 503:

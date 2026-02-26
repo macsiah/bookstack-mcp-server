@@ -7,11 +7,18 @@ export class Logger {
   private static instance: Logger;
   private logger: WinstonLogger;
 
-  private constructor() {
+  private constructor(winstonLogger?: WinstonLogger) {
+    if (winstonLogger) {
+      // Used internally by child() to wrap a Winston child logger directly
+      // without re-running the full setup path.
+      this.logger = winstonLogger;
+      return;
+    }
+
     const level = process.env.LOG_LEVEL || 'info';
     const format = process.env.LOG_FORMAT || 'pretty';
 
-    const logFormat = format === 'json' 
+    const logFormat = format === 'json'
       ? winston.format.combine(
           winston.format.timestamp(),
           winston.format.errors({ stack: true }),
@@ -59,10 +66,13 @@ export class Logger {
     this.logger.error(message, meta);
   }
 
+  /**
+   * Returns a child logger that inherits all settings but merges `meta` into
+   * every log entry. Uses a lightweight wrapper instead of a full constructor
+   * run so no second Winston instance is created.
+   */
   child(meta: any): Logger {
-    const childLogger = new Logger();
-    childLogger.logger = this.logger.child(meta);
-    return childLogger;
+    return new Logger(this.logger.child(meta));
   }
 }
 
