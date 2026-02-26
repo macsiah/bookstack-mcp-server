@@ -24,6 +24,7 @@ const permissions_1 = require("./tools/permissions");
 const audit_1 = require("./tools/audit");
 const system_1 = require("./tools/system");
 const server_info_1 = require("./tools/server-info");
+const tags_1 = require("./tools/tags");
 const books_2 = require("./resources/books");
 const pages_2 = require("./resources/pages");
 const chapters_2 = require("./resources/chapters");
@@ -91,6 +92,7 @@ class BookStackMCPServer {
             new audit_1.AuditTools(this.client, this.validator, this.logger),
             new system_1.SystemTools(this.client, this.validator, this.logger),
             new server_info_1.ServerInfoTools(this.logger, this.tools, this.resources),
+            new tags_1.TagTools(this.client, this.validator, this.logger),
         ];
         // Register all tools
         toolClasses.forEach((toolClass) => {

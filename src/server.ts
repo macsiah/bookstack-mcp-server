@@ -27,6 +27,7 @@ import { PermissionTools } from './tools/permissions';
 import { AuditTools } from './tools/audit';
 import { SystemTools } from './tools/system';
 import { ServerInfoTools } from './tools/server-info';
+import { TagTools } from './tools/tags';
 import { BookResources } from './resources/books';
 import { PageResources } from './resources/pages';
 import { ChapterResources } from './resources/chapters';
@@ -107,6 +108,7 @@ export class BookStackMCPServer {
       new AuditTools(this.client, this.validator, this.logger),
       new SystemTools(this.client, this.validator, this.logger),
       new ServerInfoTools(this.logger, this.tools, this.resources),
+      new TagTools(this.client, this.validator, this.logger),
     ];
 
     // Register all tools
