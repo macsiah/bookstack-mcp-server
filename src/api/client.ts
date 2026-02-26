@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 import { Agent } from 'https';
+import { McpError } from '@modelcontextprotocol/sdk/types.js';
 import { Config } from '../config/manager';
 import { Logger } from '../utils/logger';
 import { ErrorHandler } from '../utils/errors';
@@ -160,6 +161,12 @@ export class BookStackClient implements BookStackAPIClient {
       const response: AxiosResponse<T> = await this.client.request(config);
       return response.data;
     } catch (error) {
+      // The response interceptor already converts AxiosErrors into McpErrors.
+      // Re-throwing them directly preserves the original error code and message
+      // instead of passing them through handleError() again unnecessarily.
+      if (error instanceof McpError) {
+        throw error;
+      }
       throw this.errorHandler.handleError(error);
     }
   }

@@ -15,22 +15,25 @@ export class RateLimiter {
   }
 
   /**
-   * Acquire a token, waiting if necessary
+   * Acquire a token, waiting if necessary.
+   * Loops after waiting so that if the refill still hasn't produced a full
+   * token (e.g. due to timer imprecision), we wait again rather than
+   * decrementing into negative territory.
    */
   async acquire(): Promise<void> {
-    this.refill();
+    while (true) {
+      this.refill();
 
-    if (this.tokens >= 1) {
-      this.tokens -= 1;
-      return;
+      if (this.tokens >= 1) {
+        this.tokens -= 1;
+        return;
+      }
+
+      // Calculate exactly how long until one token is available and wait.
+      const waitTime = (1 - this.tokens) / this.refillRate * 1000;
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      // Loop back to refill and re-check rather than unconditionally decrementing.
     }
-
-    // Wait for next token
-    const waitTime = (1 - this.tokens) / this.refillRate * 1000;
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-    
-    this.refill();
-    this.tokens -= 1;
   }
 
   /**

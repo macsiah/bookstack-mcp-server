@@ -206,10 +206,12 @@ const ValidationSchemas = {
   }),
 
   // Attachments
+  // Note: BookStack API does not support sorting attachments by 'extension';
+  // valid sort fields are name, uploaded_to, created_at, updated_at.
   attachmentsList: z.object({
     count: z.number().min(1).max(500).default(20),
     offset: z.number().min(0).default(0),
-    sort: z.enum(['name', 'extension', 'uploaded_to', 'created_at', 'updated_at']).default('name'),
+    sort: z.enum(['name', 'uploaded_to', 'created_at', 'updated_at']).default('name'),
     filter: z.object({
       name: z.string().optional(),
       uploaded_to: z.number().optional(),
@@ -263,10 +265,12 @@ const ValidationSchemas = {
   }),
 
   // Audit Log
+  // Note: BookStack API only supports sorting audit logs by 'created_at';
+  // 'type' and 'user_id' are filter fields, not valid sort keys.
   auditLogList: z.object({
     count: z.number().min(1).max(500).default(20),
     offset: z.number().min(0).default(0),
-    sort: z.enum(['created_at', 'type', 'user_id']).default('created_at'),
+    sort: z.enum(['created_at']).default('created_at'),
     filter: z.object({
       type: z.string().optional(),
       user_id: z.number().optional(),
