@@ -48,21 +48,6 @@ export class RateLimiter {
     this.lastRefill = now;
   }
 
-  /**
-   * Check if a request can be made immediately
-   */
-  canMakeRequest(): boolean {
-    this.refill();
-    return this.tokens >= 1;
-  }
-
-  /**
-   * Get current token count
-   */
-  getTokenCount(): number {
-    this.refill();
-    return this.tokens;
-  }
 }
 
 export default RateLimiter;

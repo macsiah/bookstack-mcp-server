@@ -140,34 +140,6 @@ export class ErrorHandler {
     }
   }
 
-  /**
-   * Check if error is retryable
-   */
-  isRetryable(error: any): boolean {
-    if (error.isAxiosError) {
-      const status = error.response?.status;
-      return [429, 500, 502, 503, 504].includes(status);
-    }
-
-    return false;
-  }
-
-  /**
-   * Create a user-friendly error message
-   */
-  getUserFriendlyMessage(error: any): string {
-    if (error instanceof McpError) {
-      return error.message;
-    }
-
-    if (error.isAxiosError) {
-      const status = error.response?.status;
-      const mapping = this.errorMappings[status as keyof typeof this.errorMappings];
-      return mapping?.message || 'An error occurred while communicating with BookStack';
-    }
-
-    return 'An unexpected error occurred';
-  }
 }
 
 export default ErrorHandler;

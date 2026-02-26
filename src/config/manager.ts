@@ -17,7 +17,8 @@ export const ConfigSchema = z.object({
   server: z.object({
     name: z.string().default('bookstack-mcp-server'),
     version: z.string().default('1.0.0'),
-    port: z.number().positive().default(3000),
+    // Note: this server uses stdio transport and does not bind to a port.
+    // SERVER_PORT is intentionally not loaded.
   }),
   rateLimit: z.object({
     requestsPerMinute: z.number().positive().default(60),
@@ -30,16 +31,6 @@ export const ConfigSchema = z.object({
   logging: z.object({
     level: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
     format: z.enum(['json', 'pretty']).default('pretty'),
-  }),
-  context7: z.object({
-    enabled: z.boolean().default(true),
-    libraryId: z.string().default('/bookstack/bookstack'),
-    cacheTtl: z.number().positive().default(3600),
-  }),
-  security: z.object({
-    corsEnabled: z.boolean().default(true),
-    corsOrigin: z.string().default('*'),
-    helmetEnabled: z.boolean().default(true),
   }),
   development: z.object({
     nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
@@ -82,7 +73,6 @@ export class ConfigManager {
       server: {
         name: process.env.SERVER_NAME || 'bookstack-mcp-server',
         version: process.env.SERVER_VERSION || '1.0.0',
-        port: parseInt(process.env.SERVER_PORT || '3000'),
       },
       rateLimit: {
         requestsPerMinute: parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE || '60'),
@@ -95,16 +85,6 @@ export class ConfigManager {
       logging: {
         level: process.env.LOG_LEVEL || 'info',
         format: process.env.LOG_FORMAT || 'pretty',
-      },
-      context7: {
-        enabled: process.env.CONTEXT7_ENABLED !== 'false',
-        libraryId: process.env.CONTEXT7_LIBRARY_ID || '/bookstack/bookstack',
-        cacheTtl: parseInt(process.env.CONTEXT7_CACHE_TTL || '3600'),
-      },
-      security: {
-        corsEnabled: process.env.CORS_ENABLED !== 'false',
-        corsOrigin: process.env.CORS_ORIGIN || '*',
-        helmetEnabled: process.env.HELMET_ENABLED !== 'false',
       },
       development: {
         nodeEnv: process.env.NODE_ENV || 'development',
@@ -187,11 +167,6 @@ export class ConfigManager {
       rateLimit: config.rateLimit,
       validation: config.validation,
       logging: config.logging,
-      context7: {
-        enabled: config.context7.enabled,
-        libraryId: config.context7.libraryId,
-        cacheTtl: config.context7.cacheTtl,
-      },
       development: config.development,
     };
   }
