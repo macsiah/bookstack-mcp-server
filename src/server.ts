@@ -48,7 +48,7 @@ import { MCPTool, MCPResource } from './types';
  * through the Model Context Protocol (MCP).
  * 
  * Features:
- * - 71 tools covering all BookStack API endpoints plus tag, utility, and batch tools
+ * - 73 tools covering all BookStack API endpoints plus tag, utility, and batch tools
  * - Resource access for all content types (books, pages, chapters, shelves, users, search, roles, attachments, images)
  * - Comprehensive error handling and validation
  * - Rate limiting
@@ -112,7 +112,7 @@ export class BookStackMCPServer {
       new AuditTools(this.client, this.validator, this.logger),
       new SystemTools(this.client, this.validator, this.logger),
       new ServerInfoTools(this.logger, this.tools, this.resources),
-      new TagTools(this.client, this.validator, this.logger),
+      new TagTools(this.client, this.validator, this.logger, ConfigManager.getInstance().getConfig().tags?.taxonomy),
       new UtilityTools(this.client, this.validator, this.logger),
       new BatchTools(this.client, this.validator, this.logger),
     ];
