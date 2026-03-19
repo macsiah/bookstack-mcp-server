@@ -320,10 +320,9 @@ export class ChapterTools {
         },
       },
       handler: async (params: any) => {
-        const id = this.validator.validateId(params.id);
-        const { format } = params;
-        this.logger.info('Exporting chapter', { id, format });
-        return await this.client.exportChapter(id, format);
+        const validated = this.validator.validateParams<any>(params, 'export');
+        this.logger.info('Exporting chapter', { id: validated.id, format: validated.format });
+        return await this.client.exportChapter(validated.id, validated.format);
       },
     };
   }

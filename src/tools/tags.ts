@@ -54,16 +54,24 @@ export class TagTools {
   ): Promise<any[]> {
     const items: any[] = [];
     let offset = 0;
-    const count = 100;
+    const pageSize = 100;
 
     while (items.length < maxItems) {
+      const remaining = maxItems - items.length;
+      const count = Math.min(pageSize, remaining);
       const data = await listFn({ count, offset });
       const batch: any[] = data.data || [];
       items.push(...batch);
-      if (batch.length < count || items.length >= (data.total || 0)) break;
-      offset += count;
+      // Stop if: we got fewer items than requested (last page), nothing came back,
+      // or we've now collected everything the server has.
+      if (batch.length < count || batch.length === 0 || items.length >= (data.total ?? Infinity)) {
+        break;
+      }
+      offset += batch.length;
     }
 
+    // Safety net: if the API returned more items than the count we requested,
+    // still honour maxItems so callers get predictable bounds.
     return items.slice(0, maxItems);
   }
 
@@ -401,7 +409,10 @@ export class TagTools {
         'Add, update, or remove a tag across multiple BookStack items in a single operation. ' +
         'Always reads existing tags first (read-before-write) so no other tags are overwritten. ' +
         'Supports dry_run mode to preview changes before applying. ' +
-        'Select items by explicit ID list or by filter tag (auto-select all that match).',
+        'Select items by explicit ID list or by filter tag (auto-select all that match). ' +
+        'Note: uses a read-then-write pattern per item; concurrent edits by other users between ' +
+        'the read and write could cause tag loss. For critical operations, use dry_run first and ' +
+        'schedule during low-activity windows.',
       inputSchema: {
         type: 'object',
         required: ['content_type', 'operation', 'tag_name'],

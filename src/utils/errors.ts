@@ -64,7 +64,7 @@ export class ErrorHandler {
       return error;
     }
 
-    if (error.isAxiosError) {
+    if (error instanceof AxiosError) {
       return this.handleAxiosError(error);
     }
 
