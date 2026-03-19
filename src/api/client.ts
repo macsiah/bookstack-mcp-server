@@ -66,12 +66,18 @@ import {
  * Provides a comprehensive wrapper around the BookStack REST API
  * with built-in error handling, rate limiting, and retry logic.
  */
+// Retryable HTTP status codes (server errors and rate limits)
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+const MAX_RETRIES = 3;
+
 export class BookStackClient implements BookStackAPIClient {
   private client: AxiosInstance;
   private logger: Logger;
   private errorHandler: ErrorHandler;
   private rateLimiter: RateLimiter;
   private config: Config;
+  /** In-flight GET request deduplication map */
+  private inflight = new Map<string, Promise<any>>();
 
   constructor(config: Config, logger: Logger, errorHandler: ErrorHandler) {
     this.config = config;
@@ -154,20 +160,77 @@ export class BookStackClient implements BookStackAPIClient {
   }
 
   /**
-   * Generic request method with retry logic
+   * Expose current rate-limiter status for the ratelimit_status tool.
    */
-  private async request<T>(config: AxiosRequestConfig): Promise<T> {
+  getRateLimitStatus() {
+    return this.rateLimiter.getStatus();
+  }
+
+  /**
+   * Execute one HTTP request, converting errors appropriately.
+   */
+  private async executeRequest<T>(config: AxiosRequestConfig): Promise<T> {
     try {
       const response: AxiosResponse<T> = await this.client.request(config);
       return response.data;
     } catch (error) {
       // The response interceptor already converts AxiosErrors into McpErrors.
-      // Re-throwing them directly preserves the original error code and message
-      // instead of passing them through handleError() again unnecessarily.
       if (error instanceof McpError) {
         throw error;
       }
       throw this.errorHandler.handleError(error);
+    }
+  }
+
+  /**
+   * Generic request method with:
+   *  - GET request deduplication (concurrent identical calls share one in-flight promise)
+   *  - Exponential backoff retry for 429 / 5xx responses (up to MAX_RETRIES)
+   */
+  private async request<T>(config: AxiosRequestConfig, attempt = 0): Promise<T> {
+    const isGet = (config.method ?? 'GET').toUpperCase() === 'GET';
+
+    // Deduplicate concurrent identical GET requests
+    if (isGet) {
+      const key = `${config.url}::${JSON.stringify(config.params ?? {})}`;
+      const existing = this.inflight.get(key);
+      if (existing) {
+        this.logger.debug('Deduplicating in-flight request', { url: config.url });
+        return existing as Promise<T>;
+      }
+      const promise = this.requestWithRetry<T>(config, attempt).finally(() => {
+        this.inflight.delete(key);
+      });
+      this.inflight.set(key, promise);
+      return promise;
+    }
+
+    return this.requestWithRetry<T>(config, attempt);
+  }
+
+  /**
+   * Execute a request with exponential backoff retry on transient failures.
+   */
+  private async requestWithRetry<T>(config: AxiosRequestConfig, attempt: number): Promise<T> {
+    try {
+      return await this.executeRequest<T>(config);
+    } catch (error) {
+      if (error instanceof McpError) {
+        const status: number | undefined = (error.data as any)?.status;
+        if (status && RETRYABLE_STATUSES.has(status) && attempt < MAX_RETRIES) {
+          const delayMs = 100 * Math.pow(2, attempt); // 100, 200, 400 ms
+          this.logger.warn('Retrying after transient error', {
+            status,
+            attempt: attempt + 1,
+            maxRetries: MAX_RETRIES,
+            delayMs,
+            url: config.url,
+          });
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          return this.requestWithRetry<T>(config, attempt + 1);
+        }
+      }
+      throw error;
     }
   }
 

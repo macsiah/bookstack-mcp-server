@@ -160,6 +160,7 @@ const ValidationSchemas = {
         name: zod_1.z.string().min(1).max(255),
         email: zod_1.z.string().email().max(255),
         password: zod_1.z.string().min(8).optional(),
+        external_auth_id: zod_1.z.string().optional(),
         roles: zod_1.z.array(zod_1.z.number()).optional(),
         send_invite: zod_1.z.boolean().optional(),
     }),
@@ -189,10 +190,12 @@ const ValidationSchemas = {
         mfa_enforced: zod_1.z.boolean().optional(),
     }),
     // Attachments
+    // Note: BookStack API does not support sorting attachments by 'extension';
+    // valid sort fields are name, uploaded_to, created_at, updated_at.
     attachmentsList: zod_1.z.object({
         count: zod_1.z.number().min(1).max(500).default(20),
         offset: zod_1.z.number().min(0).default(0),
-        sort: zod_1.z.enum(['name', 'extension', 'uploaded_to', 'created_at', 'updated_at']).default('name'),
+        sort: zod_1.z.enum(['name', 'uploaded_to', 'created_at', 'updated_at']).default('name'),
         filter: zod_1.z.object({
             name: zod_1.z.string().optional(),
             uploaded_to: zod_1.z.number().optional(),
@@ -239,10 +242,12 @@ const ValidationSchemas = {
         count: zod_1.z.number().min(1).max(100).default(20),
     }),
     // Audit Log
+    // Note: BookStack API only supports sorting audit logs by 'created_at';
+    // 'type' and 'user_id' are filter fields, not valid sort keys.
     auditLogList: zod_1.z.object({
         count: zod_1.z.number().min(1).max(500).default(20),
         offset: zod_1.z.number().min(0).default(0),
-        sort: zod_1.z.enum(['created_at', 'type', 'user_id']).default('created_at'),
+        sort: zod_1.z.enum(['created_at']).default('created_at'),
         filter: zod_1.z.object({
             type: zod_1.z.string().optional(),
             user_id: zod_1.z.number().optional(),
@@ -253,11 +258,14 @@ const ValidationSchemas = {
     // Content Permissions
     contentPermissionsUpdate: zod_1.z.object({
         permissions: zod_1.z.array(zod_1.z.object({
-            role_id: zod_1.z.number(),
+            role_id: zod_1.z.number().optional(),
+            user_id: zod_1.z.number().optional(),
             view: zod_1.z.boolean(),
             create: zod_1.z.boolean(),
             update: zod_1.z.boolean(),
             delete: zod_1.z.boolean(),
+        }).refine(data => data.role_id !== undefined || data.user_id !== undefined, {
+            message: 'Either role_id or user_id must be provided',
         })),
     }),
     // Export

@@ -4,8 +4,8 @@ exports.PermissionTools = void 0;
 /**
  * Permission management tools for BookStack MCP Server
  *
- * Provides 2 tools for content permission management:
- * - Read and update content permissions
+ * Provides 3 tools for content permission management:
+ * - Read, update, and audit content permissions
  */
 class PermissionTools {
     constructor(client, validator, logger) {
@@ -20,6 +20,7 @@ class PermissionTools {
         return [
             this.createReadPermissionsTool(),
             this.createUpdatePermissionsTool(),
+            this.createPermissionsAuditTool(),
         ];
     }
     /**
@@ -160,6 +161,81 @@ class PermissionTools {
                 this.logger.info('Updating permissions', { content_type, content_id: id });
                 const validatedParams = this.validator.validateParams(updateParams, 'contentPermissionsUpdate');
                 return await this.client.updateContentPermissions(content_type, id, validatedParams);
+            },
+        };
+    }
+    /**
+     * Permissions audit tool
+     *
+     * Scans all items of one or more content types and reports which ones have
+     * custom (non-inheriting) permission overrides.  Useful for security audits
+     * and compliance reviews without checking items one by one.
+     */
+    createPermissionsAuditTool() {
+        return {
+            name: 'bookstack_permissions_audit',
+            description: 'Scan content items and report which ones have custom (non-inheriting) permission overrides. ' +
+                'Returns a list of items with custom permissions, their permission details, and summary counts. ' +
+                'Use for security audits to find content that deviates from the default permission model.',
+            inputSchema: {
+                type: 'object',
+                properties: {
+                    content_types: {
+                        type: 'array',
+                        items: {
+                            type: 'string',
+                            enum: ['book', 'chapter', 'page', 'bookshelf'],
+                        },
+                        default: ['book', 'bookshelf'],
+                        description: 'Content types to scan. Defaults to books and shelves. ' +
+                            'Including pages/chapters can be slow on large instances.',
+                    },
+                    max_items_per_type: {
+                        type: 'integer',
+                        minimum: 1,
+                        maximum: 500,
+                        default: 100,
+                        description: 'Maximum items to scan per content type.',
+                    },
+                },
+            },
+            handler: async (params) => {
+                const contentTypes = params.content_types ?? ['book', 'bookshelf'];
+                const maxItems = params.max_items_per_type ?? 100;
+                this.logger.info('Auditing permissions', { contentTypes, maxItems });
+                const listFns = {
+                    book: () => this.client.listBooks({ count: maxItems }),
+                    bookshelf: () => this.client.listShelves({ count: maxItems }),
+                    chapter: () => this.client.listChapters({ count: maxItems }),
+                    page: () => this.client.listPages({ count: maxItems }),
+                };
+                const customItems = [];
+                const scanSummary = {};
+                for (const ct of contentTypes) {
+                    const listResult = await listFns[ct]();
+                    const items = listResult.data;
+                    let customCount = 0;
+                    for (const item of items) {
+                        const perms = await this.client.getContentPermissions(ct, item.id);
+                        if (!perms.inheriting) {
+                            customCount++;
+                            customItems.push({
+                                content_type: ct,
+                                id: item.id,
+                                name: item.name,
+                                inheriting: perms.inheriting,
+                                permission_count: perms.permissions?.length ?? 0,
+                                permissions: perms.permissions ?? [],
+                            });
+                        }
+                    }
+                    scanSummary[ct] = { scanned: items.length, custom_permissions: customCount };
+                }
+                return {
+                    scan_summary: scanSummary,
+                    total_items_with_custom_permissions: customItems.length,
+                    items: customItems,
+                };
             },
         };
     }

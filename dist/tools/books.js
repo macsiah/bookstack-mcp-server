@@ -299,10 +299,9 @@ class BookTools {
                 },
             },
             handler: async (params) => {
-                const id = this.validator.validateId(params.id);
-                const { format } = params;
-                this.logger.info('Exporting book', { id, format });
-                return await this.client.exportBook(id, format);
+                const validated = this.validator.validateParams(params, 'export');
+                this.logger.info('Exporting book', { id: validated.id, format: validated.format });
+                return await this.client.exportBook(validated.id, validated.format);
             },
         };
     }

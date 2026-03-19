@@ -529,18 +529,21 @@ declare const ValidationSchemas: {
         name: z.ZodString;
         email: z.ZodString;
         password: z.ZodOptional<z.ZodString>;
+        external_auth_id: z.ZodOptional<z.ZodString>;
         roles: z.ZodOptional<z.ZodArray<z.ZodNumber, "many">>;
         send_invite: z.ZodOptional<z.ZodBoolean>;
     }, "strip", z.ZodTypeAny, {
         name: string;
         email: string;
         password?: string | undefined;
+        external_auth_id?: string | undefined;
         roles?: number[] | undefined;
         send_invite?: boolean | undefined;
     }, {
         name: string;
         email: string;
         password?: string | undefined;
+        external_auth_id?: string | undefined;
         roles?: number[] | undefined;
         send_invite?: boolean | undefined;
     }>;
@@ -611,35 +614,35 @@ declare const ValidationSchemas: {
     attachmentsList: z.ZodObject<{
         count: z.ZodDefault<z.ZodNumber>;
         offset: z.ZodDefault<z.ZodNumber>;
-        sort: z.ZodDefault<z.ZodEnum<["name", "extension", "uploaded_to", "created_at", "updated_at"]>>;
+        sort: z.ZodDefault<z.ZodEnum<["name", "uploaded_to", "created_at", "updated_at"]>>;
         filter: z.ZodOptional<z.ZodObject<{
             name: z.ZodOptional<z.ZodString>;
             uploaded_to: z.ZodOptional<z.ZodNumber>;
             extension: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             name?: string | undefined;
-            extension?: string | undefined;
             uploaded_to?: number | undefined;
+            extension?: string | undefined;
         }, {
             name?: string | undefined;
-            extension?: string | undefined;
             uploaded_to?: number | undefined;
+            extension?: string | undefined;
         }>>;
     }, "strip", z.ZodTypeAny, {
-        sort: "name" | "created_at" | "updated_at" | "extension" | "uploaded_to";
+        sort: "name" | "created_at" | "updated_at" | "uploaded_to";
         count: number;
         offset: number;
         filter?: {
             name?: string | undefined;
-            extension?: string | undefined;
             uploaded_to?: number | undefined;
+            extension?: string | undefined;
         } | undefined;
     }, {
-        sort?: "name" | "created_at" | "updated_at" | "extension" | "uploaded_to" | undefined;
+        sort?: "name" | "created_at" | "updated_at" | "uploaded_to" | undefined;
         filter?: {
             name?: string | undefined;
-            extension?: string | undefined;
             uploaded_to?: number | undefined;
+            extension?: string | undefined;
         } | undefined;
         count?: number | undefined;
         offset?: number | undefined;
@@ -756,7 +759,7 @@ declare const ValidationSchemas: {
     auditLogList: z.ZodObject<{
         count: z.ZodDefault<z.ZodNumber>;
         offset: z.ZodDefault<z.ZodNumber>;
-        sort: z.ZodDefault<z.ZodEnum<["created_at", "type", "user_id"]>>;
+        sort: z.ZodDefault<z.ZodEnum<["created_at"]>>;
         filter: z.ZodOptional<z.ZodObject<{
             type: z.ZodOptional<z.ZodString>;
             user_id: z.ZodOptional<z.ZodNumber>;
@@ -774,7 +777,7 @@ declare const ValidationSchemas: {
             entity_id?: number | undefined;
         }>>;
     }, "strip", z.ZodTypeAny, {
-        sort: "type" | "created_at" | "user_id";
+        sort: "created_at";
         count: number;
         offset: number;
         filter?: {
@@ -784,7 +787,7 @@ declare const ValidationSchemas: {
             entity_id?: number | undefined;
         } | undefined;
     }, {
-        sort?: "type" | "created_at" | "user_id" | undefined;
+        sort?: "created_at" | undefined;
         filter?: {
             type?: string | undefined;
             user_id?: number | undefined;
@@ -795,40 +798,59 @@ declare const ValidationSchemas: {
         offset?: number | undefined;
     }>;
     contentPermissionsUpdate: z.ZodObject<{
-        permissions: z.ZodArray<z.ZodObject<{
-            role_id: z.ZodNumber;
+        permissions: z.ZodArray<z.ZodEffects<z.ZodObject<{
+            role_id: z.ZodOptional<z.ZodNumber>;
+            user_id: z.ZodOptional<z.ZodNumber>;
             view: z.ZodBoolean;
             create: z.ZodBoolean;
             update: z.ZodBoolean;
             delete: z.ZodBoolean;
         }, "strip", z.ZodTypeAny, {
             delete: boolean;
-            role_id: number;
             view: boolean;
             create: boolean;
             update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
         }, {
             delete: boolean;
-            role_id: number;
             view: boolean;
             create: boolean;
             update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
+        }>, {
+            delete: boolean;
+            view: boolean;
+            create: boolean;
+            update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
+        }, {
+            delete: boolean;
+            view: boolean;
+            create: boolean;
+            update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
         }>, "many">;
     }, "strip", z.ZodTypeAny, {
         permissions: {
             delete: boolean;
-            role_id: number;
             view: boolean;
             create: boolean;
             update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
         }[];
     }, {
         permissions: {
             delete: boolean;
-            role_id: number;
             view: boolean;
             create: boolean;
             update: boolean;
+            user_id?: number | undefined;
+            role_id?: number | undefined;
         }[];
     }>;
     export: z.ZodObject<{

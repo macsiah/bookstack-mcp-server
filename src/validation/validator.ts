@@ -172,6 +172,7 @@ const ValidationSchemas = {
     name: z.string().min(1).max(255),
     email: z.string().email().max(255),
     password: z.string().min(8).optional(),
+    external_auth_id: z.string().optional(),
     roles: z.array(z.number()).optional(),
     send_invite: z.boolean().optional(),
   }),
@@ -282,11 +283,14 @@ const ValidationSchemas = {
   // Content Permissions
   contentPermissionsUpdate: z.object({
     permissions: z.array(z.object({
-      role_id: z.number(),
+      role_id: z.number().optional(),
+      user_id: z.number().optional(),
       view: z.boolean(),
       create: z.boolean(),
       update: z.boolean(),
       delete: z.boolean(),
+    }).refine(data => data.role_id !== undefined || data.user_id !== undefined, {
+      message: 'Either role_id or user_id must be provided',
     })),
   }),
 

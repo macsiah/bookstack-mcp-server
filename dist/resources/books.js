@@ -95,7 +95,7 @@ class BookResources {
                     const match = uri.match(/^bookstack:\/\/books\/(\d+)$/);
                     if (!match)
                         throw new Error('Invalid book resource URI');
-                    const id = parseInt(match[1]);
+                    const id = parseInt(match[1], 10);
                     this.logger.debug('Fetching book resource', { id });
                     return await this.client.getBook(id);
                 },

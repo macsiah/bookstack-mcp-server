@@ -304,7 +304,7 @@ export class ServerInfoTools {
       {
         name: 'search',
         description: 'Search across all content types',
-        tools: ['bookstack_search_all', 'bookstack_search_books', 'bookstack_search_pages'],
+        tools: ['bookstack_search'],
         use_cases: ['Find existing content', 'Locate information quickly', 'Content discovery'],
       },
       {

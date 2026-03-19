@@ -3,8 +3,8 @@ import { Logger } from '../utils/logger';
 import { MCPResource } from '../types';
 export declare class PageResources {
     private client;
-    private _logger;
-    constructor(client: BookStackClient, _logger: Logger);
+    private logger;
+    constructor(client: BookStackClient, logger: Logger);
     getResources(): MCPResource[];
 }
 //# sourceMappingURL=pages.d.ts.map
