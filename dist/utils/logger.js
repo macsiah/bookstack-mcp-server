@@ -9,7 +9,13 @@ const winston_1 = __importDefault(require("winston"));
  * Logger utility using Winston
  */
 class Logger {
-    constructor() {
+    constructor(winstonLogger) {
+        if (winstonLogger) {
+            // Used internally by child() to wrap a Winston child logger directly
+            // without re-running the full setup path.
+            this.logger = winstonLogger;
+            return;
+        }
         const level = process.env.LOG_LEVEL || 'info';
         const format = process.env.LOG_FORMAT || 'pretty';
         const logFormat = format === 'json'
@@ -44,10 +50,13 @@ class Logger {
     error(message, meta) {
         this.logger.error(message, meta);
     }
+    /**
+     * Returns a child logger that inherits all settings but merges `meta` into
+     * every log entry. Uses a lightweight wrapper instead of a full constructor
+     * run so no second Winston instance is created.
+     */
     child(meta) {
-        const childLogger = new Logger();
-        childLogger.logger = this.logger.child(meta);
-        return childLogger;
+        return new Logger(this.logger.child(meta));
     }
 }
 exports.Logger = Logger;

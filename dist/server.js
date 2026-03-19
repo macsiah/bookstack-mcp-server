@@ -38,11 +38,10 @@ const search_2 = require("./resources/search");
  * through the Model Context Protocol (MCP).
  *
  * Features:
- * - 47 tools covering all BookStack API endpoints
+ * - 51 tools covering all BookStack API endpoints plus tag management
  * - Resource access for all content types
- * - Context7 integration for enhanced documentation
  * - Comprehensive error handling and validation
- * - Rate limiting and retry policies
+ * - Rate limiting
  */
 class BookStackMCPServer {
     constructor() {
@@ -268,6 +267,11 @@ class BookStackMCPServer {
 exports.BookStackMCPServer = BookStackMCPServer;
 // Start server if run directly
 if (require.main === module) {
+    // Validate production requirements early so the server fails fast with a
+    // clear message rather than surfacing misconfig later during a tool call.
+    if (process.env.NODE_ENV === 'production') {
+        manager_1.ConfigManager.getInstance().validateForProduction();
+    }
     const server = new BookStackMCPServer();
     server.start().catch((error) => {
         console.error('Failed to start server:', error);

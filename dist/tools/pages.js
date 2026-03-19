@@ -295,10 +295,9 @@ class PageTools {
                 },
             },
             handler: async (params) => {
-                const id = this.validator.validateId(params.id);
-                const { format } = params;
-                this.logger.info('Exporting page', { id, format });
-                return await this.client.exportPage(id, format);
+                const validated = this.validator.validateParams(params, 'export');
+                this.logger.info('Exporting page', { id: validated.id, format: validated.format });
+                return await this.client.exportPage(validated.id, validated.format);
             },
         };
     }

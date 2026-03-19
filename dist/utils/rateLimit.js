@@ -12,19 +12,23 @@ class RateLimiter {
         this.lastRefill = Date.now();
     }
     /**
-     * Acquire a token, waiting if necessary
+     * Acquire a token, waiting if necessary.
+     * Loops after waiting so that if the refill still hasn't produced a full
+     * token (e.g. due to timer imprecision), we wait again rather than
+     * decrementing into negative territory.
      */
     async acquire() {
-        this.refill();
-        if (this.tokens >= 1) {
-            this.tokens -= 1;
-            return;
+        while (true) {
+            this.refill();
+            if (this.tokens >= 1) {
+                this.tokens -= 1;
+                return;
+            }
+            // Calculate exactly how long until one token is available and wait.
+            const waitTime = (1 - this.tokens) / this.refillRate * 1000;
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            // Loop back to refill and re-check rather than unconditionally decrementing.
         }
-        // Wait for next token
-        const waitTime = (1 - this.tokens) / this.refillRate * 1000;
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        this.refill();
-        this.tokens -= 1;
     }
     /**
      * Refill tokens based on elapsed time
@@ -35,20 +39,6 @@ class RateLimiter {
         const tokensToAdd = elapsed * this.refillRate;
         this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
         this.lastRefill = now;
-    }
-    /**
-     * Check if a request can be made immediately
-     */
-    canMakeRequest() {
-        this.refill();
-        return this.tokens >= 1;
-    }
-    /**
-     * Get current token count
-     */
-    getTokenCount() {
-        this.refill();
-        return this.tokens;
     }
 }
 exports.RateLimiter = RateLimiter;

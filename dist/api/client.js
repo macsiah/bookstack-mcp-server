@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookStackClient = void 0;
 const axios_1 = __importDefault(require("axios"));
 const https_1 = require("https");
+const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
 const rateLimit_1 = require("../utils/rateLimit");
 /**
  * BookStack API Client
@@ -88,6 +89,12 @@ class BookStackClient {
             return response.data;
         }
         catch (error) {
+            // The response interceptor already converts AxiosErrors into McpErrors.
+            // Re-throwing them directly preserves the original error code and message
+            // instead of passing them through handleError() again unnecessarily.
+            if (error instanceof types_js_1.McpError) {
+                throw error;
+            }
             throw this.errorHandler.handleError(error);
         }
     }

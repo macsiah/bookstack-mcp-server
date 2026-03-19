@@ -18,7 +18,8 @@ exports.ConfigSchema = zod_1.z.object({
     server: zod_1.z.object({
         name: zod_1.z.string().default('bookstack-mcp-server'),
         version: zod_1.z.string().default('1.0.0'),
-        port: zod_1.z.number().positive().default(3000),
+        // Note: this server uses stdio transport and does not bind to a port.
+        // SERVER_PORT is intentionally not loaded.
     }),
     rateLimit: zod_1.z.object({
         requestsPerMinute: zod_1.z.number().positive().default(60),
@@ -31,16 +32,6 @@ exports.ConfigSchema = zod_1.z.object({
     logging: zod_1.z.object({
         level: zod_1.z.enum(['error', 'warn', 'info', 'debug']).default('info'),
         format: zod_1.z.enum(['json', 'pretty']).default('pretty'),
-    }),
-    context7: zod_1.z.object({
-        enabled: zod_1.z.boolean().default(true),
-        libraryId: zod_1.z.string().default('/bookstack/bookstack'),
-        cacheTtl: zod_1.z.number().positive().default(3600),
-    }),
-    security: zod_1.z.object({
-        corsEnabled: zod_1.z.boolean().default(true),
-        corsOrigin: zod_1.z.string().default('*'),
-        helmetEnabled: zod_1.z.boolean().default(true),
     }),
     development: zod_1.z.object({
         nodeEnv: zod_1.z.enum(['development', 'production', 'test']).default('development'),
@@ -74,7 +65,6 @@ class ConfigManager {
             server: {
                 name: process.env.SERVER_NAME || 'bookstack-mcp-server',
                 version: process.env.SERVER_VERSION || '1.0.0',
-                port: parseInt(process.env.SERVER_PORT || '3000'),
             },
             rateLimit: {
                 requestsPerMinute: parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE || '60'),
@@ -87,16 +77,6 @@ class ConfigManager {
             logging: {
                 level: process.env.LOG_LEVEL || 'info',
                 format: process.env.LOG_FORMAT || 'pretty',
-            },
-            context7: {
-                enabled: process.env.CONTEXT7_ENABLED !== 'false',
-                libraryId: process.env.CONTEXT7_LIBRARY_ID || '/bookstack/bookstack',
-                cacheTtl: parseInt(process.env.CONTEXT7_CACHE_TTL || '3600'),
-            },
-            security: {
-                corsEnabled: process.env.CORS_ENABLED !== 'false',
-                corsOrigin: process.env.CORS_ORIGIN || '*',
-                helmetEnabled: process.env.HELMET_ENABLED !== 'false',
             },
             development: {
                 nodeEnv: process.env.NODE_ENV || 'development',
@@ -169,11 +149,6 @@ class ConfigManager {
             rateLimit: config.rateLimit,
             validation: config.validation,
             logging: config.logging,
-            context7: {
-                enabled: config.context7.enabled,
-                libraryId: config.context7.libraryId,
-                cacheTtl: config.context7.cacheTtl,
-            },
             development: config.development,
         };
     }

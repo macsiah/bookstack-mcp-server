@@ -11,21 +11,16 @@ export declare class RateLimiter {
         burstLimit: number;
     });
     /**
-     * Acquire a token, waiting if necessary
+     * Acquire a token, waiting if necessary.
+     * Loops after waiting so that if the refill still hasn't produced a full
+     * token (e.g. due to timer imprecision), we wait again rather than
+     * decrementing into negative territory.
      */
     acquire(): Promise<void>;
     /**
      * Refill tokens based on elapsed time
      */
     private refill;
-    /**
-     * Check if a request can be made immediately
-     */
-    canMakeRequest(): boolean;
-    /**
-     * Get current token count
-     */
-    getTokenCount(): number;
 }
 export default RateLimiter;
 //# sourceMappingURL=rateLimit.d.ts.map

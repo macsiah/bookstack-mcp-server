@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorHandler = void 0;
+const axios_1 = require("axios");
 const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
+const isDevelopment = process.env.NODE_ENV !== 'production';
 /**
  * Error handler for BookStack MCP Server
  */
@@ -53,7 +55,7 @@ class ErrorHandler {
         if (error instanceof types_js_1.McpError) {
             return error;
         }
-        if (error.isAxiosError) {
+        if (error instanceof axios_1.AxiosError) {
             return this.handleAxiosError(error);
         }
         // Handle validation errors from Zod
@@ -67,10 +69,12 @@ class ErrorHandler {
                 validation: validationDetails,
             });
         }
-        // Handle generic errors
+        // Handle generic errors.
+        // Stack traces are only included in development — in production they leak
+        // internal file paths and implementation details to the MCP client.
         const mcpError = new types_js_1.McpError(types_js_1.ErrorCode.InternalError, error.message || 'An unexpected error occurred', {
             type: 'internal_error',
-            stack: error.stack,
+            ...(isDevelopment && { stack: error.stack }),
         });
         this.logger.error('Generic error handled', {
             message: error.message,
@@ -80,7 +84,18 @@ class ErrorHandler {
         return mcpError;
     }
     /**
-     * Map HTTP status codes to MCP error codes
+     * Map HTTP status codes to MCP error codes.
+     *
+     * MCP's ErrorCode vocabulary is limited, so we map as semantically close as
+     * possible and rely on the error message + data.type for finer distinction:
+     *   400 / 422 → InvalidParams   (caller sent bad data)
+     *   401       → InvalidRequest  (unauthenticated — no valid token)
+     *   403       → InvalidRequest  (authenticated but not permitted)
+     *   404       → InvalidRequest  (resource doesn't exist)
+     *   429 / 5xx → InternalError   (server-side or rate-limit problem)
+     *
+     * Callers that need to tell 401 from 403 from 404 apart should inspect
+     * error.data.type ('authentication_error', 'permission_error', 'not_found_error').
      */
     mapToMCPErrorCode(status) {
         switch (status) {
@@ -88,13 +103,10 @@ class ErrorHandler {
             case 422:
                 return types_js_1.ErrorCode.InvalidParams;
             case 401:
-                return types_js_1.ErrorCode.InvalidRequest;
             case 403:
-                return types_js_1.ErrorCode.InvalidRequest;
             case 404:
                 return types_js_1.ErrorCode.InvalidRequest;
             case 429:
-                return types_js_1.ErrorCode.InternalError;
             case 500:
             case 502:
             case 503:
@@ -103,30 +115,6 @@ class ErrorHandler {
             default:
                 return types_js_1.ErrorCode.InternalError;
         }
-    }
-    /**
-     * Check if error is retryable
-     */
-    isRetryable(error) {
-        if (error.isAxiosError) {
-            const status = error.response?.status;
-            return [429, 500, 502, 503, 504].includes(status);
-        }
-        return false;
-    }
-    /**
-     * Create a user-friendly error message
-     */
-    getUserFriendlyMessage(error) {
-        if (error instanceof types_js_1.McpError) {
-            return error.message;
-        }
-        if (error.isAxiosError) {
-            const status = error.response?.status;
-            const mapping = this.errorMappings[status];
-            return mapping?.message || 'An error occurred while communicating with BookStack';
-        }
-        return 'An unexpected error occurred';
     }
 }
 exports.ErrorHandler = ErrorHandler;

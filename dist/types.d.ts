@@ -158,7 +158,7 @@ export interface RecycleBinItem {
     deletable_type: string;
     deletable_id: number;
     deleted_by: number;
-    deletable: any;
+    deletable: Book | Page | Chapter | Bookshelf;
 }
 export interface ContentPermissions {
     inheriting: boolean;
