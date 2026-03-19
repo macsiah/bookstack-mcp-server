@@ -36,6 +36,14 @@ export const ConfigSchema = z.object({
     nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
     debug: z.boolean().default(false),
   }),
+  tags: z.object({
+    /**
+     * Optional tag taxonomy: a map of tag name → allowed values.
+     * Loaded from BOOKSTACK_TAG_TAXONOMY as a JSON string.
+     * E.g. {"Status":["Draft","Complete"],"Priority":["High","Low"]}
+     */
+    taxonomy: z.record(z.array(z.string())).optional(),
+  }).default({}),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -89,6 +97,18 @@ export class ConfigManager {
       development: {
         nodeEnv: process.env.NODE_ENV || 'development',
         debug: process.env.DEBUG === 'true',
+      },
+      tags: {
+        taxonomy: process.env.BOOKSTACK_TAG_TAXONOMY
+          ? (() => {
+              try {
+                return JSON.parse(process.env.BOOKSTACK_TAG_TAXONOMY!);
+              } catch {
+                this.logger.warn('BOOKSTACK_TAG_TAXONOMY is not valid JSON — ignoring');
+                return undefined;
+              }
+            })()
+          : undefined,
       },
     };
 

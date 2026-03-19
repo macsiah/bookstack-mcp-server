@@ -43,7 +43,7 @@ const images_2 = require("./resources/images");
  * through the Model Context Protocol (MCP).
  *
  * Features:
- * - 71 tools covering all BookStack API endpoints plus tag, utility, and batch tools
+ * - 73 tools covering all BookStack API endpoints plus tag, utility, and batch tools
  * - Resource access for all content types (books, pages, chapters, shelves, users, search, roles, attachments, images)
  * - Comprehensive error handling and validation
  * - Rate limiting
@@ -96,7 +96,7 @@ class BookStackMCPServer {
             new audit_1.AuditTools(this.client, this.validator, this.logger),
             new system_1.SystemTools(this.client, this.validator, this.logger),
             new server_info_1.ServerInfoTools(this.logger, this.tools, this.resources),
-            new tags_1.TagTools(this.client, this.validator, this.logger),
+            new tags_1.TagTools(this.client, this.validator, this.logger, manager_1.ConfigManager.getInstance().getConfig().tags?.taxonomy),
             new utility_1.UtilityTools(this.client, this.validator, this.logger),
             new batch_1.BatchTools(this.client, this.validator, this.logger),
         ];

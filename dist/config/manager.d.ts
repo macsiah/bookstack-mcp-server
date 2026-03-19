@@ -66,6 +66,18 @@ export declare const ConfigSchema: z.ZodObject<{
         debug?: boolean | undefined;
         nodeEnv?: "development" | "production" | "test" | undefined;
     }>;
+    tags: z.ZodDefault<z.ZodObject<{
+        /**
+         * Optional tag taxonomy: a map of tag name → allowed values.
+         * Loaded from BOOKSTACK_TAG_TAXONOMY as a JSON string.
+         * E.g. {"Status":["Draft","Complete"],"Priority":["High","Low"]}
+         */
+        taxonomy: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodArray<z.ZodString, "many">>>;
+    }, "strip", z.ZodTypeAny, {
+        taxonomy?: Record<string, string[]> | undefined;
+    }, {
+        taxonomy?: Record<string, string[]> | undefined;
+    }>>;
 }, "strip", z.ZodTypeAny, {
     validation: {
         enabled: boolean;
@@ -91,6 +103,9 @@ export declare const ConfigSchema: z.ZodObject<{
     development: {
         debug: boolean;
         nodeEnv: "development" | "production" | "test";
+    };
+    tags: {
+        taxonomy?: Record<string, string[]> | undefined;
     };
 }, {
     validation: {
@@ -118,6 +133,9 @@ export declare const ConfigSchema: z.ZodObject<{
         debug?: boolean | undefined;
         nodeEnv?: "development" | "production" | "test" | undefined;
     };
+    tags?: {
+        taxonomy?: Record<string, string[]> | undefined;
+    } | undefined;
 }>;
 export type Config = z.infer<typeof ConfigSchema>;
 /**

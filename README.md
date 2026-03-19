@@ -1,19 +1,20 @@
 # BookStack MCP Server — Sunnyside School District Fork
 
-This is a fork of [pnocera/bookstack-mcp-server](https://github.com/pnocera/bookstack-mcp-server) customized for **Sunnyside School District IT Operations**.
+This is a fork of [pnocera/bookstack-mcp-server](https://github.com/pnocera/bookstack-mcp-server) maintained by **Sunnyside School District**.
 
-It extends the original 47-tool base with **25 additional tools**, **9 additional resources**, infrastructure hardening, and a full unit test suite.
+It extends the original 47-tool base with **26 additional tools**, **9 additional resources**, infrastructure hardening, and a full unit test suite.
 
 ---
 
 ## What This Fork Adds
 
-### Tag Management Tools (4)
+### Tag Management Tools (5)
 
-Purpose-built for the SSD IT Operations tag taxonomy:
+Tools for managing tags across any BookStack content — works for any organization or department, any content type:
 
 | Tool | Description |
 |------|-------------|
+| `bookstack_tags_taxonomy` | Return the configured tag vocabulary (names + allowed values) from `BOOKSTACK_TAG_TAXONOMY` |
 | `bookstack_tags_search` | Search content by tag name/value using correct `tag:Name=Value` query syntax |
 | `bookstack_tags_list_all` | Enumerate every unique tag in use across all content, with usage counts |
 | `bookstack_tags_audit` | Coverage report showing which items are untagged or missing required tags |
@@ -155,12 +156,26 @@ Add this to your `claude_desktop_config.json`:
 
 ---
 
-## SSD Tag Taxonomy
+## Configuring a Tag Taxonomy
 
-The tag tools are designed around this IT Operations taxonomy:
+Set `BOOKSTACK_TAG_TAXONOMY` in your `.env` (or MCP client `env` block) to a JSON object mapping tag names to arrays of allowed values:
 
-| Tag | Values |
-|-----|--------|
+```
+BOOKSTACK_TAG_TAXONOMY={"Status":["Placeholder","Draft","Complete"],"Priority":["Critical","High","Medium"],"Content Type":["Procedure","Guide","Reference","Policy"],"Audience":["All Staff","Administrators","Teachers"]}
+```
+
+When configured:
+- `bookstack_tags_taxonomy` returns the full vocabulary so AI clients know what tags and values to suggest
+- `bookstack_tags_audit` automatically requires all tag names in the taxonomy (no need to pass `required_tag_names` manually)
+
+The taxonomy works for any type of content and any organization — documents, policies, procedures, guides, or anything else managed in BookStack.
+
+## Example Tag Taxonomy
+
+The tag tools work with any taxonomy you define. The example below shows tags used by Sunnyside School District, but you can define your own to match your organization's needs:
+
+| Tag | Example Values |
+|-----|----------------|
 | `Status` | Placeholder / Draft / Complete |
 | `Priority` | Critical / High / Medium |
 | `Content Type` | Procedure / Runbook / Reference / Registry / Guide / Index / Policy / Gap Register |

@@ -64,21 +64,21 @@ declare const ValidationSchemas: {
         default_template_id: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         name: string;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         default_template_id?: number | undefined;
     }, {
         name: string;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         default_template_id?: number | undefined;
     }>;
     bookUpdate: z.ZodObject<{
@@ -98,21 +98,21 @@ declare const ValidationSchemas: {
         default_template_id: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         default_template_id?: number | undefined;
     }, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         default_template_id?: number | undefined;
     }>;
     pagesList: z.ZodObject<{
@@ -180,67 +180,67 @@ declare const ValidationSchemas: {
         priority: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }>, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }>, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }, {
         name: string;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
@@ -264,23 +264,23 @@ declare const ValidationSchemas: {
         priority: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         name?: string | undefined;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
     }, {
         name?: string | undefined;
-        html?: string | undefined;
-        markdown?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        html?: string | undefined;
+        markdown?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
         chapter_id?: number | undefined;
@@ -335,22 +335,22 @@ declare const ValidationSchemas: {
     }, "strip", z.ZodTypeAny, {
         name: string;
         book_id: number;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         priority?: number | undefined;
     }, {
         name: string;
         book_id: number;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         priority?: number | undefined;
     }>;
     chapterUpdate: z.ZodObject<{
@@ -371,22 +371,22 @@ declare const ValidationSchemas: {
         priority: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
     }, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         priority?: number | undefined;
         book_id?: number | undefined;
     }>;
@@ -438,21 +438,21 @@ declare const ValidationSchemas: {
         books: z.ZodOptional<z.ZodArray<z.ZodNumber, "many">>;
     }, "strip", z.ZodTypeAny, {
         name: string;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         books?: number[] | undefined;
     }, {
         name: string;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         books?: number[] | undefined;
     }>;
     shelfUpdate: z.ZodObject<{
@@ -472,21 +472,21 @@ declare const ValidationSchemas: {
         books: z.ZodOptional<z.ZodArray<z.ZodNumber, "many">>;
     }, "strip", z.ZodTypeAny, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         books?: number[] | undefined;
     }, {
         name?: string | undefined;
-        description?: string | undefined;
-        description_html?: string | undefined;
         tags?: {
             value: string;
             name: string;
         }[] | undefined;
+        description?: string | undefined;
+        description_html?: string | undefined;
         books?: number[] | undefined;
     }>;
     usersList: z.ZodObject<{

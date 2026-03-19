@@ -8,13 +8,15 @@ const TYPE_SEARCH_FILTERS = {
     bookshelf: '[bookshelf]',
 };
 class TagTools {
-    constructor(client, validator, logger) {
+    constructor(client, validator, logger, taxonomy) {
         this.client = client;
         this.validator = validator;
         this.logger = logger;
+        this.taxonomy = taxonomy;
     }
     getTools() {
         return [
+            this.createTagTaxonomyTool(),
             this.createTagSearchTool(),
             this.createTagListAllTool(),
             this.createTagAuditTool(),
@@ -91,7 +93,36 @@ class TagTools {
         }
     }
     // ---------------------------------------------------------------------------
-    // Tool 1: bookstack_tags_search
+    // Tool 1: bookstack_tags_taxonomy
+    // ---------------------------------------------------------------------------
+    createTagTaxonomyTool() {
+        return {
+            name: 'bookstack_tags_taxonomy',
+            description: 'Return the configured tag taxonomy: the set of recognised tag names and their ' +
+                'allowed values. Use this before tagging, auditing, or searching to see what tags ' +
+                'are available. If no taxonomy has been configured (BOOKSTACK_TAG_TAXONOMY env var) ' +
+                'the result will be empty and you should use bookstack_tags_list_all to discover ' +
+                'tags already in use.',
+            inputSchema: {
+                type: 'object',
+                properties: {},
+            },
+            handler: async (_params) => {
+                const taxonomy = this.taxonomy ?? {};
+                const tagNames = Object.keys(taxonomy);
+                return {
+                    configured: tagNames.length > 0,
+                    tag_count: tagNames.length,
+                    taxonomy: tagNames.map(name => ({
+                        name,
+                        allowed_values: taxonomy[name],
+                    })),
+                };
+            },
+        };
+    }
+    // ---------------------------------------------------------------------------
+    // Tool 2: bookstack_tags_search  (renumbered; was Tool 1)
     // ---------------------------------------------------------------------------
     createTagSearchTool() {
         return {
@@ -168,7 +199,7 @@ class TagTools {
         };
     }
     // ---------------------------------------------------------------------------
-    // Tool 2: bookstack_tags_list_all
+    // Tool 3: bookstack_tags_list_all  (renumbered; was Tool 2)
     // ---------------------------------------------------------------------------
     createTagListAllTool() {
         return {
@@ -249,7 +280,7 @@ class TagTools {
         };
     }
     // ---------------------------------------------------------------------------
-    // Tool 3: bookstack_tags_audit
+    // Tool 4: bookstack_tags_audit  (renumbered; was Tool 3)
     // ---------------------------------------------------------------------------
     createTagAuditTool() {
         return {
@@ -270,7 +301,9 @@ class TagTools {
                         type: 'array',
                         items: { type: 'string' },
                         description: 'Tag names that every item should have. Items missing any of these are flagged. ' +
-                            "E.g. ['Content Type', 'Audience', 'Review Cycle']",
+                            "E.g. ['Content Type', 'Audience', 'Review Cycle']. " +
+                            'Defaults to all tag names in the configured taxonomy (BOOKSTACK_TAG_TAXONOMY) ' +
+                            'when not provided.',
                     },
                     max_items: {
                         type: 'integer',
@@ -283,7 +316,9 @@ class TagTools {
             },
             handler: async (params) => {
                 const ct = params.content_type;
-                const required = (params.required_tag_names ?? []).map((n) => n.trim());
+                // Default required tags to taxonomy keys when caller omits required_tag_names
+                const defaultRequired = this.taxonomy ? Object.keys(this.taxonomy) : [];
+                const required = (params.required_tag_names ?? defaultRequired).map((n) => n.trim());
                 const maxItems = params.max_items ?? 200;
                 const items = await this.fetchAllPages(this.getListFn(ct), maxItems);
                 let itemsNoTags = 0;
@@ -317,7 +352,7 @@ class TagTools {
         };
     }
     // ---------------------------------------------------------------------------
-    // Tool 4: bookstack_tags_bulk_update
+    // Tool 5: bookstack_tags_bulk_update  (renumbered; was Tool 4)
     // ---------------------------------------------------------------------------
     createTagBulkUpdateTool() {
         return {

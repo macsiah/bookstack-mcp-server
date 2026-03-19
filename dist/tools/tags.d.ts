@@ -6,7 +6,8 @@ export declare class TagTools {
     private client;
     private validator;
     private logger;
-    constructor(client: BookStackClient, validator: ValidationHandler, logger: Logger);
+    private taxonomy?;
+    constructor(client: BookStackClient, validator: ValidationHandler, logger: Logger, taxonomy?: Record<string, string[]> | undefined);
     getTools(): MCPTool[];
     /** Paginate through a list endpoint and return all items up to maxItems. */
     private fetchAllPages;
@@ -18,6 +19,7 @@ export declare class TagTools {
     private getGetFn;
     /** Return the update method for a given content type. */
     private getUpdateFn;
+    private createTagTaxonomyTool;
     private createTagSearchTool;
     private createTagListAllTool;
     private createTagAuditTool;

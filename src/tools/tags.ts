@@ -6,14 +6,17 @@ import { MCPTool } from '../types';
 /**
  * Tag management tools for BookStack MCP Server
  *
- * Provides 4 tools for working with BookStack content tags:
+ * Provides 5 tools for working with BookStack content tags:
+ *   - bookstack_tags_taxonomy:    Return the configured tag taxonomy (names + allowed values)
  *   - bookstack_tags_search:      Search content by tag name/value (correct query encoding)
  *   - bookstack_tags_list_all:    Enumerate all tags in use with usage counts
  *   - bookstack_tags_audit:       Coverage report for enforcing tagging standards
  *   - bookstack_tags_bulk_update: Safe bulk add/set/remove with read-before-write
  *
- * Developed for Sunnyside School District to support the IT Operations
- * BookStack tag taxonomy.
+ * An optional tag taxonomy (Record<tagName, string[]>) may be supplied at construction
+ * time via BOOKSTACK_TAG_TAXONOMY. When present it:
+ *   - Is returned by bookstack_tags_taxonomy so AI clients know what tags are available
+ *   - Pre-fills required_tag_names in bookstack_tags_audit when not explicitly provided
  */
 
 type ContentTypeSingle = 'page' | 'book' | 'chapter' | 'bookshelf';
@@ -31,11 +34,13 @@ export class TagTools {
   constructor(
     private client: BookStackClient,
     private validator: ValidationHandler,
-    private logger: Logger
+    private logger: Logger,
+    private taxonomy?: Record<string, string[]>
   ) {}
 
   getTools(): MCPTool[] {
     return [
+      this.createTagTaxonomyTool(),
       this.createTagSearchTool(),
       this.createTagListAllTool(),
       this.createTagAuditTool(),
@@ -131,7 +136,40 @@ export class TagTools {
   }
 
   // ---------------------------------------------------------------------------
-  // Tool 1: bookstack_tags_search
+  // Tool 1: bookstack_tags_taxonomy
+  // ---------------------------------------------------------------------------
+
+  private createTagTaxonomyTool(): MCPTool {
+    return {
+      name: 'bookstack_tags_taxonomy',
+      description:
+        'Return the configured tag taxonomy: the set of recognised tag names and their ' +
+        'allowed values. Use this before tagging, auditing, or searching to see what tags ' +
+        'are available. If no taxonomy has been configured (BOOKSTACK_TAG_TAXONOMY env var) ' +
+        'the result will be empty and you should use bookstack_tags_list_all to discover ' +
+        'tags already in use.',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+      },
+      handler: async (_params: any) => {
+        const taxonomy = this.taxonomy ?? {};
+        const tagNames = Object.keys(taxonomy);
+
+        return {
+          configured: tagNames.length > 0,
+          tag_count: tagNames.length,
+          taxonomy: tagNames.map(name => ({
+            name,
+            allowed_values: taxonomy[name],
+          })),
+        };
+      },
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tool 2: bookstack_tags_search  (renumbered; was Tool 1)
   // ---------------------------------------------------------------------------
 
   private createTagSearchTool(): MCPTool {
@@ -219,7 +257,7 @@ export class TagTools {
   }
 
   // ---------------------------------------------------------------------------
-  // Tool 2: bookstack_tags_list_all
+  // Tool 3: bookstack_tags_list_all  (renumbered; was Tool 2)
   // ---------------------------------------------------------------------------
 
   private createTagListAllTool(): MCPTool {
@@ -321,7 +359,7 @@ export class TagTools {
   }
 
   // ---------------------------------------------------------------------------
-  // Tool 3: bookstack_tags_audit
+  // Tool 4: bookstack_tags_audit  (renumbered; was Tool 3)
   // ---------------------------------------------------------------------------
 
   private createTagAuditTool(): MCPTool {
@@ -345,7 +383,9 @@ export class TagTools {
             items: { type: 'string' },
             description:
               'Tag names that every item should have. Items missing any of these are flagged. ' +
-              "E.g. ['Content Type', 'Audience', 'Review Cycle']",
+              "E.g. ['Content Type', 'Audience', 'Review Cycle']. " +
+              'Defaults to all tag names in the configured taxonomy (BOOKSTACK_TAG_TAXONOMY) ' +
+              'when not provided.',
           },
           max_items: {
             type: 'integer',
@@ -358,7 +398,9 @@ export class TagTools {
       },
       handler: async (params: any) => {
         const ct = params.content_type as ContentTypeSingle;
-        const required: string[] = (params.required_tag_names ?? []).map((n: string) => n.trim());
+        // Default required tags to taxonomy keys when caller omits required_tag_names
+        const defaultRequired = this.taxonomy ? Object.keys(this.taxonomy) : [];
+        const required: string[] = (params.required_tag_names ?? defaultRequired).map((n: string) => n.trim());
         const maxItems: number = params.max_items ?? 200;
 
         const items = await this.fetchAllPages(this.getListFn(ct), maxItems);
@@ -399,7 +441,7 @@ export class TagTools {
   }
 
   // ---------------------------------------------------------------------------
-  // Tool 4: bookstack_tags_bulk_update
+  // Tool 5: bookstack_tags_bulk_update  (renumbered; was Tool 4)
   // ---------------------------------------------------------------------------
 
   private createTagBulkUpdateTool(): MCPTool {
