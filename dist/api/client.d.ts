@@ -2,27 +2,42 @@ import { Config } from '../config/manager';
 import { Logger } from '../utils/logger';
 import { ErrorHandler } from '../utils/errors';
 import { BookStackAPIClient, Book, BookWithContents, Page, PageWithContent, Chapter, ChapterWithPages, Bookshelf, BookshelfWithBooks, User, UserWithRoles, Role, RoleWithPermissions, Attachment, Image, SearchResult, RecycleBinItem, ContentPermissions, AuditLogEntry, SystemInfo, ListResponse, BooksListParams, PagesListParams, ChaptersListParams, ShelvesListParams, UsersListParams, RolesListParams, AttachmentsListParams, SearchParams, ImageGalleryListParams, AuditLogListParams, CreateBookParams, UpdateBookParams, CreatePageParams, UpdatePageParams, CreateChapterParams, UpdateChapterParams, CreateShelfParams, UpdateShelfParams, CreateUserParams, UpdateUserParams, CreateRoleParams, UpdateRoleParams, CreateAttachmentParams, UpdateAttachmentParams, CreateImageParams, UpdateImageParams, UpdateContentPermissionsParams, ExportFormat, ExportResult, ContentType, PaginationParams } from '../types';
-/**
- * BookStack API Client
- *
- * Provides a comprehensive wrapper around the BookStack REST API
- * with built-in error handling, rate limiting, and retry logic.
- */
 export declare class BookStackClient implements BookStackAPIClient {
     private client;
     private logger;
     private errorHandler;
     private rateLimiter;
     private config;
+    /** In-flight GET request deduplication map */
+    private inflight;
     constructor(config: Config, logger: Logger, errorHandler: ErrorHandler);
     /**
      * Setup request and response interceptors
      */
     private setupInterceptors;
     /**
-     * Generic request method with retry logic
+     * Expose current rate-limiter status for the ratelimit_status tool.
+     */
+    getRateLimitStatus(): {
+        tokens_available: number;
+        max_tokens: number;
+        refill_rate_per_minute: number;
+        estimated_wait_ms: number;
+    };
+    /**
+     * Execute one HTTP request, converting errors appropriately.
+     */
+    private executeRequest;
+    /**
+     * Generic request method with:
+     *  - GET request deduplication (concurrent identical calls share one in-flight promise)
+     *  - Exponential backoff retry for 429 / 5xx responses (up to MAX_RETRIES)
      */
     private request;
+    /**
+     * Execute a request with exponential backoff retry on transient failures.
+     */
+    private requestWithRetry;
     /**
      * Health check method
      */

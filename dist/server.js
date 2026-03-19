@@ -25,12 +25,17 @@ const audit_1 = require("./tools/audit");
 const system_1 = require("./tools/system");
 const server_info_1 = require("./tools/server-info");
 const tags_1 = require("./tools/tags");
+const utility_1 = require("./tools/utility");
+const batch_1 = require("./tools/batch");
 const books_2 = require("./resources/books");
 const pages_2 = require("./resources/pages");
 const chapters_2 = require("./resources/chapters");
 const shelves_2 = require("./resources/shelves");
 const users_2 = require("./resources/users");
 const search_2 = require("./resources/search");
+const roles_2 = require("./resources/roles");
+const attachments_2 = require("./resources/attachments");
+const images_2 = require("./resources/images");
 /**
  * BookStack MCP Server
  *
@@ -38,8 +43,8 @@ const search_2 = require("./resources/search");
  * through the Model Context Protocol (MCP).
  *
  * Features:
- * - 51 tools covering all BookStack API endpoints plus tag management
- * - Resource access for all content types
+ * - 71 tools covering all BookStack API endpoints plus tag, utility, and batch tools
+ * - Resource access for all content types (books, pages, chapters, shelves, users, search, roles, attachments, images)
  * - Comprehensive error handling and validation
  * - Rate limiting
  */
@@ -92,6 +97,8 @@ class BookStackMCPServer {
             new system_1.SystemTools(this.client, this.validator, this.logger),
             new server_info_1.ServerInfoTools(this.logger, this.tools, this.resources),
             new tags_1.TagTools(this.client, this.validator, this.logger),
+            new utility_1.UtilityTools(this.client, this.validator, this.logger),
+            new batch_1.BatchTools(this.client, this.validator, this.logger),
         ];
         // Register all tools
         toolClasses.forEach((toolClass) => {
@@ -112,6 +119,9 @@ class BookStackMCPServer {
             new shelves_2.ShelfResources(this.client, this.logger),
             new users_2.UserResources(this.client, this.logger),
             new search_2.SearchResources(this.client, this.logger),
+            new roles_2.RoleResources(this.client, this.logger),
+            new attachments_2.AttachmentResources(this.client, this.logger),
+            new images_2.ImageResources(this.client, this.logger),
         ];
         // Register all resources
         resourceClasses.forEach((resourceClass) => {

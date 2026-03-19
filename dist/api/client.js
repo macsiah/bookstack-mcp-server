@@ -14,8 +14,13 @@ const rateLimit_1 = require("../utils/rateLimit");
  * Provides a comprehensive wrapper around the BookStack REST API
  * with built-in error handling, rate limiting, and retry logic.
  */
+// Retryable HTTP status codes (server errors and rate limits)
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+const MAX_RETRIES = 3;
 class BookStackClient {
     constructor(config, logger, errorHandler) {
+        /** In-flight GET request deduplication map */
+        this.inflight = new Map();
         this.config = config;
         this.logger = logger;
         this.errorHandler = errorHandler;
@@ -81,21 +86,74 @@ class BookStackClient {
         });
     }
     /**
-     * Generic request method with retry logic
+     * Expose current rate-limiter status for the ratelimit_status tool.
      */
-    async request(config) {
+    getRateLimitStatus() {
+        return this.rateLimiter.getStatus();
+    }
+    /**
+     * Execute one HTTP request, converting errors appropriately.
+     */
+    async executeRequest(config) {
         try {
             const response = await this.client.request(config);
             return response.data;
         }
         catch (error) {
             // The response interceptor already converts AxiosErrors into McpErrors.
-            // Re-throwing them directly preserves the original error code and message
-            // instead of passing them through handleError() again unnecessarily.
             if (error instanceof types_js_1.McpError) {
                 throw error;
             }
             throw this.errorHandler.handleError(error);
+        }
+    }
+    /**
+     * Generic request method with:
+     *  - GET request deduplication (concurrent identical calls share one in-flight promise)
+     *  - Exponential backoff retry for 429 / 5xx responses (up to MAX_RETRIES)
+     */
+    async request(config, attempt = 0) {
+        const isGet = (config.method ?? 'GET').toUpperCase() === 'GET';
+        // Deduplicate concurrent identical GET requests
+        if (isGet) {
+            const key = `${config.url}::${JSON.stringify(config.params ?? {})}`;
+            const existing = this.inflight.get(key);
+            if (existing) {
+                this.logger.debug('Deduplicating in-flight request', { url: config.url });
+                return existing;
+            }
+            const promise = this.requestWithRetry(config, attempt).finally(() => {
+                this.inflight.delete(key);
+            });
+            this.inflight.set(key, promise);
+            return promise;
+        }
+        return this.requestWithRetry(config, attempt);
+    }
+    /**
+     * Execute a request with exponential backoff retry on transient failures.
+     */
+    async requestWithRetry(config, attempt) {
+        try {
+            return await this.executeRequest(config);
+        }
+        catch (error) {
+            if (error instanceof types_js_1.McpError) {
+                const status = error.data?.status;
+                if (status && RETRYABLE_STATUSES.has(status) && attempt < MAX_RETRIES) {
+                    const delayMs = 100 * Math.pow(2, attempt); // 100, 200, 400 ms
+                    this.logger.warn('Retrying after transient error', {
+                        status,
+                        attempt: attempt + 1,
+                        maxRetries: MAX_RETRIES,
+                        delayMs,
+                        url: config.url,
+                    });
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                    return this.requestWithRetry(config, attempt + 1);
+                }
+            }
+            throw error;
         }
     }
     /**

@@ -6,8 +6,8 @@
  * through the Model Context Protocol (MCP).
  *
  * Features:
- * - 51 tools covering all BookStack API endpoints plus tag management
- * - Resource access for all content types
+ * - 71 tools covering all BookStack API endpoints plus tag, utility, and batch tools
+ * - Resource access for all content types (books, pages, chapters, shelves, users, search, roles, attachments, images)
  * - Comprehensive error handling and validation
  * - Rate limiting
  */

@@ -42,7 +42,9 @@ class TagTools {
             }
             offset += batch.length;
         }
-        return items;
+        // Safety net: if the API returned more items than the count we requested,
+        // still honour maxItems so callers get predictable bounds.
+        return items.slice(0, maxItems);
     }
     /** Pure function: apply a tag operation to a tag list. */
     applyTagOperation(tags, operation, name, value) {

@@ -5,8 +5,8 @@ import { MCPTool } from '../types';
 /**
  * Permission management tools for BookStack MCP Server
  *
- * Provides 2 tools for content permission management:
- * - Read and update content permissions
+ * Provides 3 tools for content permission management:
+ * - Read, update, and audit content permissions
  */
 export declare class PermissionTools {
     private client;
@@ -25,5 +25,13 @@ export declare class PermissionTools {
      * Update permissions tool
      */
     private createUpdatePermissionsTool;
+    /**
+     * Permissions audit tool
+     *
+     * Scans all items of one or more content types and reports which ones have
+     * custom (non-inheriting) permission overrides.  Useful for security audits
+     * and compliance reviews without checking items one by one.
+     */
+    private createPermissionsAuditTool;
 }
 //# sourceMappingURL=permissions.d.ts.map

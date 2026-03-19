@@ -31,6 +31,20 @@ class RateLimiter {
         }
     }
     /**
+     * Return current rate limiter state (tokens available, estimated wait, etc.).
+     */
+    getStatus() {
+        this.refill();
+        return {
+            tokens_available: Math.max(0, Math.floor(this.tokens)),
+            max_tokens: this.maxTokens,
+            refill_rate_per_minute: Math.round(this.refillRate * 60),
+            estimated_wait_ms: this.tokens < 1
+                ? Math.ceil((1 - this.tokens) / this.refillRate * 1000)
+                : 0,
+        };
+    }
+    /**
      * Refill tokens based on elapsed time
      */
     refill() {

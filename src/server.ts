@@ -28,12 +28,17 @@ import { AuditTools } from './tools/audit';
 import { SystemTools } from './tools/system';
 import { ServerInfoTools } from './tools/server-info';
 import { TagTools } from './tools/tags';
+import { UtilityTools } from './tools/utility';
+import { BatchTools } from './tools/batch';
 import { BookResources } from './resources/books';
 import { PageResources } from './resources/pages';
 import { ChapterResources } from './resources/chapters';
 import { ShelfResources } from './resources/shelves';
 import { UserResources } from './resources/users';
 import { SearchResources } from './resources/search';
+import { RoleResources } from './resources/roles';
+import { AttachmentResources } from './resources/attachments';
+import { ImageResources } from './resources/images';
 import { MCPTool, MCPResource } from './types';
 
 /**
@@ -43,8 +48,8 @@ import { MCPTool, MCPResource } from './types';
  * through the Model Context Protocol (MCP).
  * 
  * Features:
- * - 51 tools covering all BookStack API endpoints plus tag management
- * - Resource access for all content types
+ * - 71 tools covering all BookStack API endpoints plus tag, utility, and batch tools
+ * - Resource access for all content types (books, pages, chapters, shelves, users, search, roles, attachments, images)
  * - Comprehensive error handling and validation
  * - Rate limiting
  */
@@ -108,6 +113,8 @@ export class BookStackMCPServer {
       new SystemTools(this.client, this.validator, this.logger),
       new ServerInfoTools(this.logger, this.tools, this.resources),
       new TagTools(this.client, this.validator, this.logger),
+      new UtilityTools(this.client, this.validator, this.logger),
+      new BatchTools(this.client, this.validator, this.logger),
     ];
 
     // Register all tools
@@ -131,6 +138,9 @@ export class BookStackMCPServer {
       new ShelfResources(this.client, this.logger),
       new UserResources(this.client, this.logger),
       new SearchResources(this.client, this.logger),
+      new RoleResources(this.client, this.logger),
+      new AttachmentResources(this.client, this.logger),
+      new ImageResources(this.client, this.logger),
     ];
 
     // Register all resources

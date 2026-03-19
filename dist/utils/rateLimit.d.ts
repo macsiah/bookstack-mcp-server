@@ -18,6 +18,15 @@ export declare class RateLimiter {
      */
     acquire(): Promise<void>;
     /**
+     * Return current rate limiter state (tokens available, estimated wait, etc.).
+     */
+    getStatus(): {
+        tokens_available: number;
+        max_tokens: number;
+        refill_rate_per_minute: number;
+        estimated_wait_ms: number;
+    };
+    /**
      * Refill tokens based on elapsed time
      */
     private refill;
