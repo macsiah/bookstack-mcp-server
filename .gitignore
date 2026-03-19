@@ -3,6 +3,5 @@ node_modules/
 
 .claude/
 claude*
-CLAUDE.md
 ruv*
 .prompts
