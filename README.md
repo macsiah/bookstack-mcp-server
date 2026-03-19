@@ -1,6 +1,6 @@
 # BookStack MCP Server — Sunnyside School District Fork
 
-This is a fork of [pnocera/bookstack-mcp-server](https://github.com/pnocera/bookstack-mcp-server) customized for **Sunnyside School District IT Operations**.
+This is a fork of [pnocera/bookstack-mcp-server](https://github.com/pnocera/bookstack-mcp-server) maintained by **Sunnyside School District**.
 
 It extends the original 47-tool base with **25 additional tools**, **9 additional resources**, infrastructure hardening, and a full unit test suite.
 
@@ -10,7 +10,7 @@ It extends the original 47-tool base with **25 additional tools**, **9 additiona
 
 ### Tag Management Tools (4)
 
-Purpose-built for the SSD IT Operations tag taxonomy:
+Tools for managing tags across any BookStack content — district-wide or organization-wide:
 
 | Tool | Description |
 |------|-------------|
@@ -155,12 +155,12 @@ Add this to your `claude_desktop_config.json`:
 
 ---
 
-## SSD Tag Taxonomy
+## Example Tag Taxonomy
 
-The tag tools are designed around this IT Operations taxonomy:
+The tag tools work with any taxonomy you define. The example below shows tags used by Sunnyside School District, but you can define your own to match your organization's needs:
 
-| Tag | Values |
-|-----|--------|
+| Tag | Example Values |
+|-----|----------------|
 | `Status` | Placeholder / Draft / Complete |
 | `Priority` | Critical / High / Medium |
 | `Content Type` | Procedure / Runbook / Reference / Registry / Guide / Index / Policy / Gap Register |
